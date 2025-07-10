@@ -1,4 +1,4 @@
-import retry from "./retry";
+import retry from "./retry.js";
 
 export class EmailService{
 
@@ -28,7 +28,7 @@ export class EmailService{
 
             try {
 
-                await retry(()=> provider.sendEmail(email));
+                await retry(()=> provider.sendMail(email));
                 this.sentIds.add(id);
                 this.statusMap.set(id, 'SUCCESS');
                 return 'SUCCESS';
