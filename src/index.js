@@ -2,6 +2,7 @@ import { EmailService } from "./emailService.js"
 import { RateLimiter } from "./rateLimiter.js";
 import { MainProvider, FallbackProvider } from "./providers.js";
 import { CircuitBreaker } from "./circuitBreaker.js";
+import { EmailQueue } from "./queue.js";
 
 const mainProvider = new MainProvider("gmail");
 const fallbackProvider = new FallbackProvider("microsoft");
@@ -17,6 +18,8 @@ const rateLimiter = new RateLimiter(5, 10000);
 
 const emailService = new EmailService(providers, rateLimiter);
 
+const emailQueue = new EmailQueue(emailService);
+
 const testEmails = [
     { id: 'e1', to: 'example@mail.com', subject: 'welcome', body:'This is a welcome email'},
     { id: 'e2', to: 'anotherexample@mail.com', subject: 'Verify', body: 'This is a verification email'},
@@ -31,7 +34,9 @@ async function runEmailTests() {
         try {
             const status = await emailService.send(email);
             const tracked = emailService.getStatus(email.id);
-            console.log(`Email ID: ${email.id} => Status: ${status} (Tracked: ${tracked})`);
+            if (status === 'RATE_LIMITED' || status === 'FAILED') {
+                emailQueue.enqueue(email); 
+            }
         } catch (error) {
             console.error(`Error sending email ID ${email.id}:`, error.message);
         }
@@ -48,7 +53,6 @@ async function runEmailTests() {
                 subject: `rate limiter test`,
                 body: `Email spam test for ID ${id}`
             });
-            console.log(`Email ${id} Status: ${status}`);
         } catch (error) {
             console.error(`Error sending rate limiter test email ${id}:`, error.message);
         }
@@ -58,3 +62,10 @@ async function runEmailTests() {
 }
 
 await runEmailTests();
+
+setInterval(async ()=>{
+    if (emailQueue.size() > 0){
+        console.log(`Retrying ${emailQueue.size()} queued emails...`);
+        await emailQueue.process();
+    }
+}, 10000);

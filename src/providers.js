@@ -6,10 +6,10 @@ export class MainProvider{
     // Member function which mocks the sending of an email
     async sendMail(email){
 
-        // This line simulates 70% of success rate
+        // This line simulates 50% of success rate
         console.log(`[${this.name}] Attempting to send email...`);
         await new Promise(resolve => setTimeout(resolve, 1000));
-        const success = Math.random() > 0.3
+        const success = Math.random() > 0.5
 
         if (!success){
             throw new Error(`${this.name} failed to send email`)
@@ -27,10 +27,10 @@ export class FallbackProvider{
     // Member function to mock email sending
     async sendMail(email){
 
-        // This line simulates 60% of success rate
+        // This line simulates 50% of success rate
         console.log(`[${this.name}] Attempting to send email...`);
         await new Promise(resolve => setTimeout(resolve, 1000));
-        const success = Math.random() > 0.4
+        const success = Math.random() > 0.5
 
         if (!success){
             throw new Error(`${this.name} failed to send email`)

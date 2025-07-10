@@ -1,4 +1,5 @@
 import retry from "./retry.js";
+import logEvent from "./logger.js";
 
 export class EmailService{
 
@@ -15,11 +16,13 @@ export class EmailService{
         const {id} = email
 
         if (this.sentIds.has(id)) {
-            return 'IDEMPOTENT'
+            logEvent("DUPLICATE", {id: id})
+            return 'DUPLICATE'
         }
 
         if (!this.rateLimiter.allow()) {
             this.statusMap.set(id, 'RATE_LIMITED');
+            logEvent("RATE_LIMITED")
             return 'RATE_LIMITED';
         }
 
@@ -38,14 +41,17 @@ export class EmailService{
                 this.sentIds.add(id);
                 this.statusMap.set(id, 'SUCCESS');
                 circuit.recordSuccess();
+                logEvent("EMAIL_SENT", {to: email.to});
                 return 'SUCCESS';
 
             } catch (error) {
                 circuit.recordFailure();
                 if (i === this.providers.length - 1) {
                     this.statusMap.set(id, 'FAILED');
+                    logEvent("FAILED", {name: provider.name})
                     return 'FAILED';
                 } else {
+                    logEvent("FALLBACK", {name: provider.name})
                     this.statusMap.set(id, 'FALLBACK')
                 }
             }
