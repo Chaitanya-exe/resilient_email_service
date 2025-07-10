@@ -1,11 +1,17 @@
 import { EmailService } from "./emailService.js"
 import { RateLimiter } from "./rateLimiter.js";
 import { MainProvider, FallbackProvider } from "./providers.js";
+import { CircuitBreaker } from "./circuitBreaker.js";
 
 const mainProvider = new MainProvider("gmail");
 const fallbackProvider = new FallbackProvider("microsoft");
+const mainProviderCircuit = new CircuitBreaker();
+const fallBackProviderCircuit = new CircuitBreaker();
 
-const providers = [mainProvider, fallbackProvider];
+const providers = [
+    { instance: mainProvider, circuit: mainProviderCircuit},
+    { instance: fallbackProvider, circuit: fallBackProviderCircuit}
+];
 
 const rateLimiter = new RateLimiter(5, 10000);
 
@@ -14,10 +20,12 @@ const emailService = new EmailService(providers, rateLimiter);
 const testEmails = [
     { id: 'e1', to: 'example@mail.com', subject: 'welcome', body:'This is a welcome email'},
     { id: 'e2', to: 'anotherexample@mail.com', subject: 'Verify', body: 'This is a verification email'},
-    { id: 'e1', to: 'somemail@mail.com', subject: 'duplicate', body: 'This is a duplicate email'}]
+    { id: 'e1', to: 'somemail@mail.com', subject: 'duplicate', body: 'This is a duplicate email'}
+]
+
 
 async function runEmailTests() {
-    console.log("--- Starting Email Service Tests ---");
+    console.log("--- Starting Email Tests ---");
 
     for (const email of testEmails) {
         try {
@@ -46,7 +54,7 @@ async function runEmailTests() {
         }
     }
 
-    console.log("--- Email Service Tests Finished ---");
+    console.log("--- Email Tests Finished ---");
 }
 
 await runEmailTests();
