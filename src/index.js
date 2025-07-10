@@ -1,8 +1,9 @@
-import { EmailService } from "./emailService.js"
-import { RateLimiter } from "./rateLimiter.js";
-import { MainProvider, FallbackProvider } from "./providers.js";
-import { CircuitBreaker } from "./circuitBreaker.js";
-import { EmailQueue } from "./queue.js";
+import { EmailService } from "./core/emailService.js"
+import { RateLimiter } from "./core/rateLimiter.js";
+import { MainProvider, FallbackProvider } from "./core/providers.js";
+import { CircuitBreaker } from "./core/circuitBreaker.js";
+import { EmailQueue } from "./core/queue.js";
+import http from 'http';
 
 const mainProvider = new MainProvider("gmail");
 const fallbackProvider = new FallbackProvider("microsoft");
@@ -44,7 +45,7 @@ async function runEmailTests() {
 
     console.log("\n--- Starting Rate Limiter Tests ---");
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 10; i++) {
         const id = `test_${i}`;
         try {
             const status = await emailService.send({
@@ -67,5 +68,7 @@ setInterval(async ()=>{
     if (emailQueue.size() > 0){
         console.log(`Retrying ${emailQueue.size()} queued emails...`);
         await emailQueue.process();
+    } else {
+        console.log("No Emails in the queue")
     }
 }, 10000);
