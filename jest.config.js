@@ -7,6 +7,6 @@ export default {
         '^(\.{1,2}/.*)\.js$': '$1',
     },
     testMatch: ['**/test/**/*.test.js'],
-    setupFilesAfterEnv: ['./test/setup.js'],
+    setupFilesAfterEnv: ['./tests/setup.js'],
     verbose: true
 };
