@@ -6,7 +6,7 @@ export default {
     moduleNameMapper: {
         '^(\.{1,2}/.*)\.js$': '$1',
     },
-    testMatch: ['**/test/**/*.test.js'],
+    testMatch: ['**/tests/**/*.test.js'],
     setupFilesAfterEnv: ['./tests/setup.js'],
     verbose: true
 };
