@@ -70,8 +70,6 @@ setInterval(async ()=>{
     if (emailQueue.size() > 0){
         console.log(`Retrying ${emailQueue.size()} queued emails...`);
         await emailQueue.process();
-    } else {
-        console.log("No Emails in the queue")
     }
 }, 10000);
 
