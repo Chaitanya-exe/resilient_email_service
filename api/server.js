@@ -4,6 +4,9 @@ import { MainProvider, FallbackProvider } from "../src/core/providers.js";
 import { CircuitBreaker } from "../src/core/circuitBreaker.js";
 import { EmailQueue } from "../src/core/queue.js";
 import http from 'http';
+import { parse } from "url";
+
+
 
 const mainProvider = new MainProvider("gmail");
 const fallbackProvider = new FallbackProvider("microsoft");
@@ -73,6 +76,9 @@ setInterval(async ()=>{
 }, 10000);
 
 const server = http.createServer(async (req, res) => {
+    const parsedUrl = parse(req.url, true);
+    const pathname = parsedUrl.pathname;
+
     if (req.method === 'POST' && req.url === '/send') {
 
         let body = '';
@@ -95,6 +101,21 @@ const server = http.createServer(async (req, res) => {
                 res.end(JSON.stringify({error: "Invalid request or internal error"}));
             }
         })
+
+    } else if (req.method === 'GET' && pathname.startsWith('/status/')){
+
+        const id = pathname.split('/').pop();
+
+        const status = emailService.getStatus(id);
+
+        if (status) {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ id, status }));
+        } else {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Email ID not found' }));
+        }
+
     } else {
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Route not found' }));
